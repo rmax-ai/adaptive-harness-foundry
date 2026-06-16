@@ -39,3 +39,8 @@ Thumbs.db
 data/harness_foundry.db*
 .harnessx/
 runs/
+
+# Docs site build artifacts
+docs/site/node_modules/
+docs/site/build/
+docs/site/.svelte-kit/
