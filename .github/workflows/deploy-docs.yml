@@ -7,7 +7,6 @@ permissions:
   contents: read
   pages: write
   id-token: write
-  administration: write
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -25,8 +24,6 @@ jobs:
           cache: npm
           cache-dependency-path: docs/site/package-lock.json
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - run: npm ci
       - run: npm run build
         env:
