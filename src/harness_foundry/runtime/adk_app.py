@@ -7,6 +7,7 @@ from google.adk.runners import Runner
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 
 from harness_foundry.runtime.compiler import HarnessCompiler
+from harness_foundry.runtime.sessions import create_session_service
 from harness_foundry.schema import HarnessDefinition
 
 
@@ -25,7 +26,7 @@ class ADKApp:
         """Create a programmatic ADK runner and its backing session service."""
 
         agent = self.create_agent(harness)
-        session_service = InMemorySessionService()  # type: ignore[no-untyped-call]
+        session_service = create_session_service()
         runner = Runner(
             agent=agent,
             app_name=f"harness_{harness.id}",

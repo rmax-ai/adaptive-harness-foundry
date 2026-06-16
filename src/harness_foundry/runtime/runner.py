@@ -12,6 +12,8 @@ from google.adk.runners import Runner
 from google.genai import types
 
 from harness_foundry.runtime.adk_app import ADKApp
+from harness_foundry.runtime.callbacks import LIFECYCLE_BUFFER_KEY
+from harness_foundry.runtime.sessions import init_session_state
 from harness_foundry.schema import (
     BenchmarkTask,
     ErrorRecord,
@@ -22,8 +24,6 @@ from harness_foundry.schema import (
 from harness_foundry.tracing.recorder import TraceRecorder
 
 logger = structlog.get_logger()
-
-_LIFECYCLE_BUFFER_KEY = "harness_foundry:lifecycle_buffer"
 
 
 class TaskRunner:
@@ -44,18 +44,13 @@ class TaskRunner:
         runner, session_service = self._app.create_runner(harness)
         app_name = self._app_name(harness, runner)
         session_id = f"{run_id}:{task.id}"
-        initial_state = {
-            "harness:task_id": task.id,
-            "harness:family": task.family,
-            "harness:step_count": 0,
-            "harness:fixture_state": task.fixture_state,
-            _LIFECYCLE_BUFFER_KEY: [],
-        }
-        await session_service.create_session(
+        await init_session_state(
+            session_service=session_service,
             app_name=app_name,
             user_id=run_id,
             session_id=session_id,
-            state=initial_state,
+            task=task,
+            harness=harness,
         )
 
         trace_events: list[TraceEvent] = []
@@ -136,7 +131,7 @@ class TaskRunner:
             session_id=session_id,
         )
         session_state = session.state if session is not None else {}
-        lifecycle_records = list(session_state.get(_LIFECYCLE_BUFFER_KEY, []))
+        lifecycle_records = list(session_state.get(LIFECYCLE_BUFFER_KEY, []))
         self._append_lifecycle_trace_events(
             append_event=append_event,
             lifecycle_records=lifecycle_records,
