@@ -1,0 +1,22 @@
+---
+title: Adaptive Harness Foundry
+---
+
+<div class="eyebrow">Documentation</div>
+
+# Adaptive Harness Foundry
+
+Configuration-level agent harness evolution with Google ADK.
+
+## What This Demonstrates
+
+- Agent harnesses as first-class, versioned, hashed configurations
+- Typed lifecycle processors attached to ADK callbacks
+- Complete structured execution traces
+- Deterministic benchmark evaluation
+- Meta-agent pipeline for bounded harness modification
+- Deterministic promotion gate
+- Task-family variant isolation
+- Held-out evaluation split
+
+[View on GitHub](https://github.com/rmax-ai/adaptive-harness-foundry)

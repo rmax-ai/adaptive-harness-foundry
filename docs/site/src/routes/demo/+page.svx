@@ -1,0 +1,27 @@
+---
+title: Demo Results
+---
+
+<div class="eyebrow">Demo Output</div>
+
+# Demo Results
+
+The proof-of-concept demo compares a baseline harness against task-family variants, runs the bounded evolution pipeline, and then validates the promoted candidate on held-out tasks.
+
+## Benchmark Summary
+
+- Baseline benchmark results: `0.47`
+- Policy variant comparison: `0.50`
+- Account variant comparison: `0.50`
+- Incident variant comparison: `0.40`
+- Held-out evaluation: `0.48`
+
+## Evolution Pipeline
+
+```text
+Evolution: patch proposed -> lint clean -> critic approved
+```
+
+## Readout
+
+The demo shows selective gains from variant isolation, plus a deterministic review pipeline before promotion. The held-out score stays close to the baseline-to-variant range, which is the key signal the promotion gate is intended to preserve.
