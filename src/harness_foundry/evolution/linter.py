@@ -56,8 +56,8 @@ class PatchLinter:
         serialized = json.dumps(patch.model_dump(mode="json"), sort_keys=True).lower()
         tracing_markers = [
             "disable_tracing",
-            "tracing_enabled\": false",
-            "observability_enabled\": false",
+            'tracing_enabled": false',
+            'observability_enabled": false',
             "turn off tracing",
         ]
         return any(marker in serialized for marker in tracing_markers)

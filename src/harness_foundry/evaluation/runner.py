@@ -27,16 +27,20 @@ class BenchmarkRunner:
         self,
         harness: HarnessDefinition,
         split: str,
+        task_family: str | None = None,
     ) -> BenchmarkReport:
         """Load benchmark tasks, execute them serially, and return a scored report."""
 
         benchmark_split = self._load_split(split)
+        tasks = benchmark_split.tasks
+        if task_family is not None:
+            tasks = [task for task in tasks if task.family == task_family]
         run_id = str(uuid4())
         scores = []
         family_scores: dict[str, list[float]] = {}
         family_passes: dict[str, list[bool]] = {}
 
-        for task in benchmark_split.tasks:
+        for task in tasks:
             events = await self._task_runner.run_task(harness=harness, task=task, run_id=run_id)
             final_response = self._extract_final_response(events)
             score = self._evaluator.evaluate(

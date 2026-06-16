@@ -52,9 +52,7 @@ def _report(total_score: float, scores: list[TaskScore]) -> BenchmarkReport:
 
 
 def test_promotion_gate_passes_candidate_with_target_gain() -> None:
-    gate = PromotionGate(
-        PromotionPolicy(require_human_approval=False, minimum_target_gain=0.10)
-    )
+    gate = PromotionGate(PromotionPolicy(require_human_approval=False, minimum_target_gain=0.10))
     baseline = _report(0.60, [_score("policy-001", 0.60, False), _score("policy-002", 0.60, True)])
     candidate = _report(0.75, [_score("policy-001", 0.75, True), _score("policy-002", 0.75, True)])
 
@@ -78,15 +76,12 @@ def test_promotion_gate_fails_candidate_with_overall_regression() -> None:
 
     assert result.passed is False
     assert any(
-        check.name == "maximum_overall_regression" and not check.passed
-        for check in result.checks
+        check.name == "maximum_overall_regression" and not check.passed for check in result.checks
     )
 
 
 def test_promotion_gate_fails_candidate_with_critical_task_regression() -> None:
-    gate = PromotionGate(
-        PromotionPolicy(require_human_approval=False, minimum_target_gain=-1.0)
-    )
+    gate = PromotionGate(PromotionPolicy(require_human_approval=False, minimum_target_gain=-1.0))
     baseline = _report(
         0.85,
         [_score("critical-policy-001", 0.90, True), _score("policy-002", 0.80, True)],
@@ -100,6 +95,5 @@ def test_promotion_gate_fails_candidate_with_critical_task_regression() -> None:
 
     assert result.passed is False
     assert any(
-        check.name == "critical_task_regressions" and not check.passed
-        for check in result.checks
+        check.name == "critical_task_regressions" and not check.passed for check in result.checks
     )

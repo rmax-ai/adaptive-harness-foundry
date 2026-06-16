@@ -2,18 +2,15 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 from typing import Any, Literal
 
-import yaml
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+import yaml  # type: ignore[import-untyped]
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from typing import Any as _Any
-
-from pydantic import field_validator
-
+from harness_foundry.catalog.hashing import canonical_json as serialize_canonical_json
+from harness_foundry.catalog.hashing import config_sha256
 from harness_foundry.schema.processor import LifecycleHook
 
 
@@ -88,20 +85,16 @@ class ProcessorOverrides(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _unpack_nested_hooks(cls, data: _Any) -> dict[str, _Any]:
+    def _unpack_nested_hooks(cls, data: Any) -> Any:
         """Accept per-hook keys with nested add lists from YAML."""
         if not isinstance(data, dict):
             return data
         # Check if data has known hook keys directly (variant YAML format)
         known_hooks = set(LifecycleHook.__members__.values())
-        nested = {
-            k.upper(): v
-            for k, v in data.items()
-            if k.upper() in known_hooks
-        }
+        nested = {k.upper(): v for k, v in data.items() if k.upper() in known_hooks}
         if nested:
             # Convert: {TASK_END: {add: [...]}} → {add_per_hook: {TASK_END: [...]}}
-            result = {}
+            result: dict[str, Any] = {}
             for hook_name, hook_data in nested.items():
                 if isinstance(hook_data, dict) and "add" in hook_data:
                     result.setdefault("add_per_hook", {})
@@ -151,11 +144,11 @@ class HarnessDefinition(BaseModel):
 
     @field_validator("processors", mode="before")
     @classmethod
-    def _normalize_processor_hook_keys(cls, value: dict[_Any, _Any]) -> dict[str, _Any]:
+    def _normalize_processor_hook_keys(cls, value: dict[Any, Any]) -> Any:
         """Accept both snake_case and UPPER_CASE hook keys; always store as uppercase."""
         if not isinstance(value, dict):
             return value
-        normalized: dict[str, _Any] = {}
+        normalized: dict[str, Any] = {}
         for key, val in value.items():
             upper_key = str(key).upper()
             if upper_key not in LifecycleHook.__members__:
@@ -164,7 +157,7 @@ class HarnessDefinition(BaseModel):
         return normalized
 
     @model_validator(mode="after")
-    def validate_processor_keys(self) -> "HarnessDefinition":
+    def validate_processor_keys(self) -> HarnessDefinition:
         """Ensure all configured processor hooks are valid lifecycle hooks."""
 
         invalid_hooks = set(self.processors) - set(LifecycleHook)
@@ -176,16 +169,12 @@ class HarnessDefinition(BaseModel):
     def canonical_json(self) -> str:
         """Return canonical JSON for deterministic hashing and persistence."""
 
-        return json.dumps(
-            self.model_dump(mode="json"),
-            sort_keys=True,
-            separators=(",", ":"),
-        )
+        return serialize_canonical_json(self.model_dump(mode="json"))
 
     def config_hash(self) -> str:
         """Return the SHA-256 hash of the canonical JSON representation."""
 
-        return hashlib.sha256(self.canonical_json().encode("utf-8")).hexdigest()
+        return config_sha256(self.canonical_json())
 
 
 class VariantDefinition(HarnessRef):
@@ -198,7 +187,7 @@ class VariantDefinition(HarnessRef):
 
     @model_validator(mode="before")
     @classmethod
-    def _unpack_extends(cls, data: _Any) -> dict[str, _Any]:
+    def _unpack_extends(cls, data: Any) -> Any:
         """Accept extends.harness_id and extends.version from YAML."""
         if isinstance(data, dict) and "extends" in data:
             extends = data.pop("extends")
@@ -224,10 +213,7 @@ class VariantDefinition(HarnessRef):
         if instruction_append is not None:
             resolved["agent"]["instruction_append"] = instruction_append
 
-        if (
-            self.overrides.processors is not None
-            and self.overrides.processors.add_per_hook
-        ):
+        if self.overrides.processors is not None and self.overrides.processors.add_per_hook:
             processors = resolved.setdefault("processors", {})
             for hook, additions in self.overrides.processors.add_per_hook.items():
                 processors.setdefault(hook, [])

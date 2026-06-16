@@ -5,9 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-_PLAYBOOKS_PATH = (
-    Path(__file__).parent.parent.parent.parent / "data" / "incident_playbooks.json"
-)
+_PLAYBOOKS_PATH = Path(__file__).parent.parent.parent.parent / "data" / "incident_playbooks.json"
 
 
 def _load_playbooks() -> list[dict]:

@@ -2,8 +2,10 @@
 
 Provides fixtures for deterministic testing without live API calls.
 """
-import pytest
+
 from pathlib import Path
+
+import pytest
 
 
 @pytest.fixture(scope="session")

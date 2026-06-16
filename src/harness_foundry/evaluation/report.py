@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from harness_foundry.evaluation.scoring import BenchmarkReport, ComparisonReport
+from harness_foundry.evaluation.scoring import BenchmarkReport, ComparisonDelta, ComparisonReport
 
 
 def render_benchmark_markdown(report: BenchmarkReport) -> str:
@@ -35,6 +35,15 @@ def render_benchmark_markdown(report: BenchmarkReport) -> str:
     return "\n".join(lines)
 
 
+def render_markdown_report(report: BenchmarkReport) -> str:
+    """Render a benchmark report as Markdown.
+
+    This alias keeps the CLI call sites readable.
+    """
+
+    return render_benchmark_markdown(report)
+
+
 def render_benchmark_json(report: BenchmarkReport) -> str:
     """Render a benchmark report as canonical JSON."""
 
@@ -56,4 +65,35 @@ def render_comparison_markdown(report: ComparisonReport) -> str:
     ]
     for family, delta in sorted(report.by_family.items()):
         lines.append(f"- `{family}`: delta=`{delta.delta:.4f}`")
+    return "\n".join(lines)
+
+
+def render_comparison_report(report: ComparisonReport) -> str:
+    """Render a side-by-side comparison report with deltas."""
+
+    def _format_delta(delta: ComparisonDelta) -> str:
+        sign = "+" if delta.delta >= 0 else ""
+        return (
+            f"baseline=`{delta.baseline:.4f}` "
+            f"candidate=`{delta.candidate:.4f}` "
+            f"delta=`{sign}{delta.delta:.4f}`"
+        )
+
+    lines = [
+        "# Comparison Report",
+        "",
+        f"- Baseline Run: `{report.baseline_run_id}`",
+        f"- Candidate Run: `{report.candidate_run_id}`",
+        f"- Total Score: {_format_delta(report.global_score)}",
+        f"- Pass Rate: {_format_delta(report.pass_rate)}",
+        "",
+        "## Family Comparison",
+    ]
+    for family, delta in sorted(report.by_family.items()):
+        lines.append(f"- `{family}`: {_format_delta(delta)}")
+
+    lines.extend(["", "## Task Comparison"])
+    for task_id, delta in sorted(report.by_task.items()):
+        lines.append(f"- `{task_id}`: {_format_delta(delta)}")
+
     return "\n".join(lines)

@@ -5,9 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-_TRANSACTIONS_PATH = (
-    Path(__file__).parent.parent.parent.parent / "data" / "transactions.json"
-)
+_TRANSACTIONS_PATH = Path(__file__).parent.parent.parent.parent / "data" / "transactions.json"
 
 
 def _load_transactions() -> list[dict]:

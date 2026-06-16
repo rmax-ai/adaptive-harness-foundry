@@ -180,8 +180,7 @@ class PromotionGate:
             name="maximum_latency_increase",
             passed=increase <= policy.maximum_latency_increase,
             detail=(
-                f"Latency increase={increase:.4f}; "
-                f"allowed<={policy.maximum_latency_increase:.4f}."
+                f"Latency increase={increase:.4f}; allowed<={policy.maximum_latency_increase:.4f}."
             ),
         )
 
@@ -198,8 +197,7 @@ class PromotionGate:
             name="maximum_token_increase",
             passed=increase <= policy.maximum_token_increase,
             detail=(
-                f"Token increase={increase:.4f}; "
-                f"allowed<={policy.maximum_token_increase:.4f}."
+                f"Token increase={increase:.4f}; allowed<={policy.maximum_token_increase:.4f}."
             ),
         )
 

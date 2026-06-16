@@ -23,3 +23,9 @@ def test_demo() -> None:
     result = runner.invoke(app, ["demo"])
     assert result.exit_code == 0
     assert "Demo complete" in result.stdout
+
+
+def test_demo_help() -> None:
+    result = runner.invoke(app, ["demo", "--help"])
+    assert result.exit_code == 0
+    assert "Run the complete proof-of-concept demo." in result.stdout

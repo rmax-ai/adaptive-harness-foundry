@@ -99,7 +99,7 @@ class ProcessorSpec(BaseModel):
     ordering: Literal["first", "last", "normal"] = "normal"
 
     @model_validator(mode="after")
-    def validate_declared_writes(self) -> "ProcessorSpec":
+    def validate_declared_writes(self) -> ProcessorSpec:
         """Ensure declared writes are valid for the selected hook."""
 
         invalid_capabilities = self.declared_writes - HOOK_CAPABILITIES[self.hook]
@@ -137,15 +137,13 @@ class ProcessorResult(BaseModel):
     validation_failure: str | None = None
 
     @model_validator(mode="after")
-    def validate_capability_usage(self) -> "ProcessorResult":
+    def validate_capability_usage(self) -> ProcessorResult:
         """Validate that populated fields are permitted by allowed capabilities."""
 
         allowed = {ProcessorCapability(value) for value in self.allowed_capabilities}
         for field_name, capability in self.MODIFICATION_CAPABILITIES.items():
             if getattr(self, field_name) is not None and capability not in allowed:
-                raise ValueError(
-                    f"Field {field_name} requires capability {capability.value}."
-                )
+                raise ValueError(f"Field {field_name} requires capability {capability.value}.")
         if self.block and ProcessorCapability.BLOCK not in allowed:
             raise ValueError("Field block requires capability BLOCK.")
         if self.terminate and ProcessorCapability.TERMINATE not in allowed:
