@@ -1,14 +1,15 @@
 <script>
+  import { base } from "$app/paths";
   const navItems = [
-    { href: "/", label: "Home" },
-    { href: "/architecture/", label: "Architecture" },
-    { href: "/demo/", label: "Demo Results" },
+    { href: `${base}/`, label: "Home" },
+    { href: `${base}/architecture/`, label: "Architecture" },
+    { href: `${base}/demo/`, label: "Demo Results" },
   ];
 </script>
 
 <nav class="sidebar">
   <div class="brand">
-    <a href="/">Adaptive Harness Foundry</a>
+    <a href={base + "/"}>Adaptive Harness Foundry</a>
     <p>Configuration-level agent harness evolution docs.</p>
   </div>
 
