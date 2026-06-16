@@ -1,0 +1,56 @@
+[
+  {
+    "id": "POL-REFUND-01",
+    "title": "Standard Refund Policy",
+    "section": "POL-REFUND-01",
+    "text": "Customers may request a refund within 14 days of purchase for any reason. Refunds are processed to the original payment method within 5-10 business days."
+  },
+  {
+    "id": "POL-REFUND-02",
+    "title": "Enterprise Refund Extension",
+    "section": "POL-REFUND-02",
+    "text": "Enterprise-tier customers are eligible for refunds within 30 days of purchase. Refunds beyond 30 days require management approval and are limited to extenuating circumstances such as service outages exceeding SLA guarantees."
+  },
+  {
+    "id": "POL-REFUND-03",
+    "title": "Premium Tier Refund Policy",
+    "section": "POL-REFUND-03",
+    "text": "Premium-tier customers are eligible for refunds within 21 days of purchase. Refunds between 21 and 45 days may be considered on a case-by-case basis for documented service issues."
+  },
+  {
+    "id": "POL-REFUND-04",
+    "title": "Basic Tier Refund Policy",
+    "section": "POL-REFUND-04",
+    "text": "Basic-tier customers are eligible for refunds within 7 days of purchase. No refunds are available after 7 days except where required by applicable consumer protection law."
+  },
+  {
+    "id": "POL-REFUND-05",
+    "title": "Duplicate Charge Policy",
+    "section": "POL-REFUND-05",
+    "text": "Duplicate charges are always eligible for full refund regardless of time elapsed. Customers should report duplicates within 90 days. After 90 days, refunds require a manual audit of transaction records."
+  },
+  {
+    "id": "POL-REFUND-06",
+    "title": "Subscription Cancellation",
+    "section": "POL-REFUND-06",
+    "text": "Subscription cancellations take effect at the end of the current billing period. Prorated refunds are not available for partial months. Annual plan cancellations within 30 days of renewal are eligible for a full refund."
+  },
+  {
+    "id": "POL-SECURITY-01",
+    "title": "Security Incident Classification",
+    "section": "POL-SECURITY-01",
+    "text": "Security incidents are classified as: P1 (critical — active breach, data exfiltration), P2 (high — confirmed vulnerability with exploit available), P3 (medium — potential vulnerability, unconfirmed), P4 (low — informational, best-practice gap)."
+  },
+  {
+    "id": "POL-SECURITY-02",
+    "title": "Billing Incident Handling",
+    "section": "POL-SECURITY-02",
+    "text": "Billing incidents involving duplicate charges or incorrect amounts are classified as: severity-critical if total disputed amount exceeds $10,000 or affects more than 10 customers; severity-high if total exceeds $1,000; severity-medium if total exceeds $100; severity-low otherwise."
+  },
+  {
+    "id": "POL-ACCOUNT-01",
+    "title": "Account Status Definitions",
+    "section": "POL-ACCOUNT-01",
+    "text": "Account statuses: active (in good standing), suspended (temporarily disabled, typically for payment issues), inactive (no activity for 90+ days, may be reactivated), closed (permanently terminated)."
+  }
+]

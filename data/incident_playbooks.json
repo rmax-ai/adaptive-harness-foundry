@@ -1,0 +1,41 @@
+[
+  {
+    "id": "PLAYBOOK-BILLING-01",
+    "issue_type": "duplicate_charge",
+    "title": "Duplicate Charge Incident Playbook",
+    "steps": [
+      {"order": 1, "action": "Verify duplicate", "description": "Confirm the charge appears twice with identical amount and timestamp within 60 seconds"},
+      {"order": 2, "action": "Check customer status", "description": "If customer is enterprise or premium tier, prioritize resolution"},
+      {"order": 3, "action": "Calculate disputed amount", "description": "Sum the duplicate transaction amounts to determine severity"},
+      {"order": 4, "action": "Assign severity", "description": "Use POL-SECURITY-02 thresholds: critical if >$10,000 or >10 customers affected; otherwise proportional"},
+      {"order": 5, "action": "Recommend action", "description": "Issue refund for duplicate charge (POL-REFUND-05). If amount is critical, escalate to billing team lead. If medium/high, create refund ticket. Notify customer within 4 hours."}
+    ],
+    "severity_rules": {
+      "critical_threshold": 10000,
+      "high_threshold": 1000,
+      "medium_threshold": 100
+    }
+  },
+  {
+    "id": "PLAYBOOK-BILLING-02",
+    "issue_type": "subscription_dispute",
+    "title": "Subscription Dispute Playbook",
+    "steps": [
+      {"order": 1, "action": "Verify subscription", "description": "Check customer subscription tier and status"},
+      {"order": 2, "action": "Review transaction", "description": "Inspect the disputed transaction amount and date"},
+      {"order": 3, "action": "Check refund eligibility", "description": "Use calculate_refund_eligibility tool to determine if refund is allowed"},
+      {"order": 4, "action": "Assign severity", "description": "Low severity unless amount exceeds $500"},
+      {"order": 5, "action": "Recommend action", "description": "If refund eligible: process refund. If not: explain policy to customer. If exception: escalate to manager."}
+    ]
+  },
+  {
+    "id": "PLAYBOOK-ACCOUNT-01",
+    "issue_type": "account_inquiry",
+    "title": "Account Inquiry Playbook",
+    "steps": [
+      {"order": 1, "action": "Look up customer", "description": "Retrieve customer record using get_customer"},
+      {"order": 2, "action": "Return details", "description": "Report tier, status, industry, and account age"},
+      {"order": 3, "action": "Handle missing", "description": "If customer not found, state clearly that no record exists"}
+    ]
+  }
+]

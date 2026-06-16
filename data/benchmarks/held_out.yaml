@@ -1,0 +1,79 @@
+tasks:
+  # ===== ACCOUNT LOOKUP (2 tasks) =====
+  - id: test-acct-001
+    family: account_lookup
+    user_input: "Could you pull up the account record for C-301? I need tier, status, and when they joined."
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      tier: enterprise
+      status: active
+    required_citations: []
+    maximum_steps: 4
+    tags: [held_out, account_lookup, enterprise]
+
+  - id: test-acct-002
+    family: account_lookup
+    user_input: "Customer C-107 account details please — just tier and status is fine."
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      tier: premium
+      status: active
+    required_citations: []
+    maximum_steps: 4
+    tags: [held_out, account_lookup, premium]
+
+  # ===== POLICY QUESTIONS (2 tasks) =====
+  - id: test-pol-001
+    family: policy_question
+    user_input: "We've had duplicate charges on our account for the past 3 weeks. We're enterprise tier. Can we get everything refunded?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      eligible: true
+      policy_section: POL-REFUND-05
+    required_citations: [POL-REFUND-05]
+    maximum_steps: 5
+    tags: [held_out, policy, cross_reference]
+
+  - id: test-pol-002
+    family: policy_question
+    user_input: "As a basic tier customer who subscribed 5 days ago, I'd like to cancel and get a full refund. Is that possible?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy, calculate_refund_eligibility]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      eligible: true
+      policy_section: POL-REFUND-04
+    required_citations: [POL-REFUND-04]
+    maximum_steps: 6
+    tags: [held_out, policy, basic_success]
+
+  # ===== INCIDENT TRIAGE (2 tasks) =====
+  - id: test-inc-001
+    family: incident_triage
+    user_input: "Customer C-106 was charged $2200 but their account is suspended. They're disputing the charge. Assess the situation."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: high
+    required_citations: []
+    maximum_steps: 8
+    tags: [held_out, incident, suspended_customer]
+
+  - id: test-inc-002
+    family: incident_triage
+    user_input: "I'm calling about customer C-210. They say a $500 subscription charge shouldn't have gone through because they're basic tier. Triage this."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: medium
+    required_citations: []
+    maximum_steps: 8
+    tags: [held_out, incident, basic_tier]

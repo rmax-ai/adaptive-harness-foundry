@@ -1,0 +1,232 @@
+tasks:
+  # ===== ACCOUNT LOOKUP (6 tasks) =====
+  - id: evo-acct-001
+    family: account_lookup
+    user_input: "Find the account tier and current status for customer C-104."
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      tier: enterprise
+      status: active
+    required_citations: []
+    maximum_steps: 4
+    tags: [account_lookup, basic]
+
+  - id: evo-acct-002
+    family: account_lookup
+    user_input: "What's the status of customer C-106? I need their tier too."
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      tier: enterprise
+      status: suspended
+    required_citations: []
+    maximum_steps: 4
+    tags: [account_lookup, suspended]
+
+  - id: evo-acct-003
+    family: account_lookup
+    user_input: "Can you look up C-303 for me? I need to know their current standing."
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      tier: basic
+      status: inactive
+    required_citations: []
+    maximum_steps: 4
+    tags: [account_lookup, inactive]
+
+  - id: evo-acct-004
+    family: account_lookup
+    user_input: "I need details on customer C-101 — tier, status, and industry."
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      tier: enterprise
+      status: active
+      industry: manufacturing
+    required_citations: []
+    maximum_steps: 4
+    tags: [account_lookup, detailed]
+
+  - id: evo-acct-005
+    family: account_lookup
+    user_input: "What tier is customer C-105 on? And are they active?"
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      tier: basic
+      status: active
+    required_citations: []
+    maximum_steps: 4
+    tags: [account_lookup, basic_tier]
+
+  - id: evo-acct-006
+    family: account_lookup
+    user_input: "Fetch the account info for C-999 please."
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: []
+    expected_facts:
+      found: false
+    required_citations: []
+    maximum_steps: 4
+    tags: [account_lookup, missing_customer]
+
+  # ===== POLICY QUESTIONS (6 tasks) =====
+  - id: evo-pol-001
+    family: policy_question
+    user_input: "Can an enterprise customer receive a refund after 25 days?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy, calculate_refund_eligibility]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      eligible: true
+      policy_section: POL-REFUND-02
+    required_citations: [POL-REFUND-02]
+    maximum_steps: 6
+    tags: [policy, enterprise, eligible]
+
+  - id: evo-pol-002
+    family: policy_question
+    user_input: "We bought a subscription 40 days ago. Can our premium account get a refund?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy, calculate_refund_eligibility]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      eligible: false
+      policy_section: POL-REFUND-03
+    required_citations: [POL-REFUND-03]
+    maximum_steps: 6
+    tags: [policy, premium, borderline]
+
+  - id: evo-pol-003
+    family: policy_question
+    user_input: "What's the refund window for basic tier customers?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      days: 7
+    required_citations: [POL-REFUND-04]
+    maximum_steps: 5
+    tags: [policy, basic, simple]
+
+  - id: evo-pol-004
+    family: policy_question
+    user_input: "We got charged twice on the same day. It's been 2 months — can we still get a refund?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      eligible: true
+      policy_section: POL-REFUND-05
+    required_citations: [POL-REFUND-05]
+    maximum_steps: 5
+    tags: [policy, duplicate, special_case]
+
+  - id: evo-pol-005
+    family: policy_question
+    user_input: "We just renewed our annual plan 20 days ago and want to cancel. Can we get our money back?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      eligible: true
+      policy_section: POL-REFUND-06
+    required_citations: [POL-REFUND-06]
+    maximum_steps: 5
+    tags: [policy, annual, renewal]
+
+  - id: evo-pol-006
+    family: policy_question
+    user_input: "My basic plan started 10 days ago. I want to cancel everything. Refund possible?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy, calculate_refund_eligibility]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      eligible: false
+      policy_section: POL-REFUND-04
+    required_citations: [POL-REFUND-04]
+    maximum_steps: 6
+    tags: [policy, basic, ineligible]
+
+  # ===== INCIDENT TRIAGE (6 tasks) =====
+  - id: evo-inc-001
+    family: incident_triage
+    user_input: "Customer C-209 reports duplicate charges after a timeout. Determine severity and propose the next action."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: high
+      action_contains: refund
+    required_citations: [POL-REFUND-05, POL-SECURITY-02]
+    maximum_steps: 8
+    tags: [incident, duplicate, standard]
+
+  - id: evo-inc-002
+    family: incident_triage
+    user_input: "Customer C-101 is reporting billing issues. They say they were charged $5000 incorrectly. Investigate and recommend action."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: high
+    required_citations: []
+    maximum_steps: 8
+    tags: [incident, billing_dispute, high_amount]
+
+  - id: evo-inc-003
+    family: incident_triage
+    user_input: "ALERT: Customer C-301 reports $8000 unauthorized charge. This appears to be a security incident."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: critical
+    required_citations: [POL-SECURITY-02]
+    maximum_steps: 8
+    tags: [incident, critical, security]
+
+  - id: evo-inc-004
+    family: incident_triage
+    user_input: "Customer C-105 says their subscription charge of $500 looks wrong. They're a basic tier customer."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: medium
+    required_citations: []
+    maximum_steps: 8
+    tags: [incident, medium, basic]
+
+  - id: evo-inc-005
+    family: incident_triage
+    user_input: "I'm from C-102 support team. There are reports of system timeout causing failed transactions. Check if there's an incident for us."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: low
+    required_citations: []
+    maximum_steps: 8
+    tags: [incident, low, investigation]
+
+  - id: evo-inc-006
+    family: incident_triage
+    user_input: "Customer C-209 says they were triple-charged. This is the third report this week. Classify and act."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: high
+      action_contains: escalate
+    required_citations: [POL-REFUND-05]
+    maximum_steps: 8
+    tags: [incident, duplicate, recurring]

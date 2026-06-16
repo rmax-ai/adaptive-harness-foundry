@@ -1,0 +1,82 @@
+tasks:
+  # ===== ACCOUNT LOOKUP (2 tasks) =====
+  - id: val-acct-001
+    family: account_lookup
+    user_input: "Look up customer C-208 and tell me everything about their account."
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      tier: enterprise
+      status: active
+      industry: finance
+    required_citations: []
+    maximum_steps: 4
+    tags: [validation, account_lookup, detailed]
+
+  - id: val-acct-002
+    family: account_lookup
+    user_input: "Is customer C-302 active? What plan are they on?"
+    fixture_state: {}
+    expected_tool_calls: [get_customer]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      tier: premium
+      status: active
+    required_citations: []
+    maximum_steps: 4
+    tags: [validation, account_lookup, premium]
+
+  # ===== POLICY QUESTIONS (2 tasks) =====
+  - id: val-pol-001
+    family: policy_question
+    user_input: "We're on the premium plan and need a refund after 30 days. The service was down for 3 days straight. What are our options?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy, calculate_refund_eligibility]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      eligible: false
+      exception_possible: true
+      policy_section: POL-REFUND-03
+    required_citations: [POL-REFUND-03]
+    maximum_steps: 6
+    tags: [validation, policy, exception]
+
+  - id: val-pol-002
+    family: policy_question
+    user_input: "Enterprise account here. We made a purchase 32 days ago and need to return it. What does the policy say?"
+    fixture_state: {}
+    expected_tool_calls: [search_policy, calculate_refund_eligibility]
+    forbidden_tool_calls: [escalate_incident]
+    expected_facts:
+      eligible: false
+      policy_section: POL-REFUND-02
+    required_citations: [POL-REFUND-02]
+    maximum_steps: 6
+    tags: [validation, policy, borderline]
+
+  # ===== INCIDENT TRIAGE (2 tasks) =====
+  - id: val-inc-001
+    family: incident_triage
+    user_input: "Customer C-304 just reported they were charged $6000 twice. This is urgent — they're threatening to leave."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: high
+      action_contains: refund
+    required_citations: [POL-REFUND-05]
+    maximum_steps: 8
+    tags: [validation, incident, urgent]
+
+  - id: val-inc-002
+    family: incident_triage
+    user_input: "C-305 subscription payment is stuck in pending. They're worried about service interruption. Classify and advise."
+    fixture_state: {}
+    expected_tool_calls: [get_customer, get_transactions, get_incident_playbook]
+    forbidden_tool_calls: []
+    expected_facts:
+      severity: low
+    required_citations: []
+    maximum_steps: 8
+    tags: [validation, incident, pending]

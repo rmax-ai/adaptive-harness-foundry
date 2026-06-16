@@ -1,0 +1,17 @@
+[
+  {"id": "C-101", "name": "Acme Corp", "tier": "enterprise", "status": "active", "industry": "manufacturing", "since": "2023-01-15"},
+  {"id": "C-102", "name": "Beta Industries", "tier": "enterprise", "status": "active", "industry": "logistics", "since": "2022-06-01"},
+  {"id": "C-103", "name": "Gamma Solutions", "tier": "premium", "status": "active", "industry": "consulting", "since": "2024-03-10"},
+  {"id": "C-104", "name": "Delta Group", "tier": "enterprise", "status": "active", "industry": "healthcare", "since": "2023-09-20"},
+  {"id": "C-105", "name": "Epsilon Inc", "tier": "basic", "status": "active", "industry": "retail", "since": "2025-01-05"},
+  {"id": "C-106", "name": "Zeta Holdings", "tier": "enterprise", "status": "suspended", "industry": "energy", "since": "2022-11-30"},
+  {"id": "C-107", "name": "Eta Services", "tier": "premium", "status": "active", "industry": "education", "since": "2024-07-15"},
+  {"id": "C-208", "name": "Theta Corp", "tier": "enterprise", "status": "active", "industry": "finance", "since": "2023-04-01"},
+  {"id": "C-209", "name": "Iota Ltd", "tier": "premium", "status": "active", "industry": "technology", "since": "2024-01-20"},
+  {"id": "C-210", "name": "Kappa Industries", "tier": "basic", "status": "active", "industry": "manufacturing", "since": "2025-03-01"},
+  {"id": "C-301", "name": "Lambda Systems", "tier": "enterprise", "status": "active", "industry": "aerospace", "since": "2023-08-10"},
+  {"id": "C-302", "name": "Mu Analytics", "tier": "premium", "status": "active", "industry": "data", "since": "2024-05-22"},
+  {"id": "C-303", "name": "Nu Networks", "tier": "basic", "status": "inactive", "industry": "telecom", "since": "2025-02-14"},
+  {"id": "C-304", "name": "Xi Security", "tier": "enterprise", "status": "active", "industry": "cybersecurity", "since": "2023-12-01"},
+  {"id": "C-305", "name": "Omicron Health", "tier": "enterprise", "status": "active", "industry": "healthcare", "since": "2024-09-15"}
+]

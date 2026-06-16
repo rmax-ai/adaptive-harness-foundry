@@ -1,0 +1,71 @@
+id: enterprise-support
+version: 1.0.0
+parent_version: null
+author: human
+task_family: default
+status: active
+
+model:
+  provider: google
+  model: gemini-2.5-flash
+  temperature: 0
+  maximum_output_tokens: 2048
+
+agent:
+  name: support_agent
+  instruction: |
+    You are an enterprise support agent. Resolve the customer's request
+    using the available tools. Do not invent unavailable information.
+    If you cannot answer from the tools, state what you don't know.
+  maximum_steps: 8
+
+tools:
+  allow:
+    - get_customer
+    - get_transactions
+    - search_policy
+    - get_incident_playbook
+    - calculate_refund_eligibility
+    - escalate_incident
+
+processors:
+  task_start:
+    - type: task_family_context
+      version: 1.0.0
+      config: {}
+
+  before_model:
+    - type: context_budget
+      version: 1.0.0
+      config:
+        max_items: 12
+
+  before_tool:
+    - type: tool_allowlist
+      version: 1.0.0
+      config: {}
+    - type: dry_run_enforcement
+      version: 1.0.0
+      config:
+        dry_run_tools:
+          - escalate_incident
+
+  after_tool:
+    - type: grounding_capture
+      version: 1.0.0
+      config: {}
+
+  step_end:
+    - type: repeated_tool_call
+      version: 1.0.0
+      config:
+        threshold: 2
+    - type: step_budget
+      version: 1.0.0
+      config:
+        maximum_steps: 8
+
+  task_end:
+    - type: trace_recorder
+      version: 1.0.0
+      config: {}

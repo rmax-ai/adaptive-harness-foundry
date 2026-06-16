@@ -1,0 +1,17 @@
+[
+  {"id": "T-1001", "customer_id": "C-101", "date": "2026-05-01", "amount": 1500.00, "type": "subscription", "status": "completed"},
+  {"id": "T-1002", "customer_id": "C-101", "date": "2026-05-15", "amount": 2000.00, "type": "subscription", "status": "completed"},
+  {"id": "T-1003", "customer_id": "C-102", "date": "2026-04-30", "amount": 3500.00, "type": "subscription", "status": "completed"},
+  {"id": "T-1004", "customer_id": "C-103", "date": "2026-05-20", "amount": 1200.00, "type": "addon", "status": "completed"},
+  {"id": "T-1005", "customer_id": "C-104", "date": "2026-05-25", "amount": 5000.00, "type": "subscription", "status": "completed"},
+  {"id": "T-1006", "customer_id": "C-105", "date": "2026-06-01", "amount": 500.00, "type": "subscription", "status": "completed"},
+  {"id": "T-1007", "customer_id": "C-209", "date": "2026-06-10", "amount": 2500.00, "type": "subscription", "status": "completed"},
+  {"id": "T-1008", "customer_id": "C-209", "date": "2026-06-10", "amount": 2500.00, "type": "subscription", "status": "duplicate"},
+  {"id": "T-1009", "customer_id": "C-208", "date": "2026-06-05", "amount": 4500.00, "type": "upgrade", "status": "completed"},
+  {"id": "T-1010", "customer_id": "C-301", "date": "2026-06-12", "amount": 8000.00, "type": "annual", "status": "completed"},
+  {"id": "T-1011", "customer_id": "C-302", "date": "2026-06-01", "amount": 1800.00, "type": "subscription", "status": "completed"},
+  {"id": "T-1012", "customer_id": "C-303", "date": "2026-05-28", "amount": 750.00, "type": "subscription", "status": "refunded"},
+  {"id": "T-1013", "customer_id": "C-304", "date": "2026-06-08", "amount": 6000.00, "type": "annual", "status": "completed"},
+  {"id": "T-1014", "customer_id": "C-305", "date": "2026-06-15", "amount": 3200.00, "type": "subscription", "status": "pending"},
+  {"id": "T-1015", "customer_id": "C-106", "date": "2026-04-15", "amount": 2200.00, "type": "subscription", "status": "disputed"}
+]

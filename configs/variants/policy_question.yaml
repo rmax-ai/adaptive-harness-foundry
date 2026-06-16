@@ -1,0 +1,25 @@
+id: enterprise-support-policy
+version: 1.0.0
+parent_version: null
+extends:
+  harness_id: enterprise-support
+  version: 1.0.0
+
+task_family: policy_question
+author: human
+status: active
+
+overrides:
+  agent:
+    instruction_append: |
+      Policy conclusions must cite an exact policy section identifier
+      (e.g., POL-REFUND-14). Quote the relevant section text.
+      Distinguish between allowed, disallowed, and exception-dependent cases.
+
+  processors:
+    task_end:
+      add:
+        - type: citation_requirement
+          version: 1.0.0
+          config:
+            required_prefix: "POL-"

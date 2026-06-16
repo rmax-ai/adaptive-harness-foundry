@@ -1,0 +1,25 @@
+id: enterprise-support-account
+version: 1.0.0
+parent_version: null
+extends:
+  harness_id: enterprise-support
+  version: 1.0.0
+
+task_family: account_lookup
+author: human
+status: active
+
+overrides:
+  agent:
+    instruction_append: |
+      For account inquiries, retrieve the customer record using get_customer.
+      Return the exact tier and status fields. Do not fabricate missing fields.
+      If the customer is not found, state that clearly.
+
+  processors:
+    before_model:
+      add:
+        - type: relevant_fixture_context
+          version: 1.0.0
+          config:
+            max_fixtures: 3

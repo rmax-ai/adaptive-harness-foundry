@@ -1,0 +1,30 @@
+id: enterprise-support-incident
+version: 1.0.0
+parent_version: null
+extends:
+  harness_id: enterprise-support
+  version: 1.0.0
+
+task_family: incident_triage
+author: human
+status: active
+
+overrides:
+  agent:
+    instruction_append: |
+      For incident triage: inspect customer info, transaction records,
+      and the incident playbook. Assign severity (low/medium/high/critical).
+      Recommend the next action. Never execute destructive operations —
+      use escalate_incident in dry-run mode only.
+
+  processors:
+    before_tool:
+      add:
+        - type: required_tool_sequence
+          version: 1.0.0
+          config:
+            required_tools:
+              - get_customer
+              - get_transactions
+              - get_incident_playbook
+            mode: record_only
