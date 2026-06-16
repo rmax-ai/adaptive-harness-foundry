@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}" />
+    <style>
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Operator UI</p>
+          <h1>Adaptive Harness Foundry</h1>
+          <p class="subhead">
+            Catalog visibility for harness versions, promotion flow, and evaluation status.
+          </p>
+        </div>
+        <nav class="nav">
+          <a href="/">Dashboard</a>
+          <a href="/harnesses">Harnesses</a>
+          <a href="/api/benchmarks">Benchmarks</a>
+          <a href="/api/harnesses">Traces</a>
+          <a href="/api/promotions">Promotions</a>
+        </nav>
+      </header>
+
+      <section class="summary-grid">
+        <article class="card">
+          <h2>Active Harness</h2>
+          {% if active_harness %}
+          <p class="metric">{{ active_harness.id }} v{{ active_harness.version }}</p>
+          <p class="muted">{{ active_harness.task_family }} • {{ active_harness.author }}</p>
+          {% else %}
+          <p class="metric">None</p>
+          <p class="muted">Seed the catalog to populate this view.</p>
+          {% endif %}
+        </article>
+
+        <article class="card">
+          <h2>Last Benchmark Score</h2>
+          <p class="metric">{{ last_benchmark_score }}</p>
+          <p class="muted">Benchmark persistence is not wired into the UI yet.</p>
+        </article>
+
+        <article class="card">
+          <h2>Pending Candidates</h2>
+          <p class="metric">{{ pending_candidates }}</p>
+          <p class="muted">Harness versions awaiting promotion decisions.</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

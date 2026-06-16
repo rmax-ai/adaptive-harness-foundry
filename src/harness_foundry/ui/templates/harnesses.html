@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Catalog</p>
+          <h1>Harness Versions</h1>
+          <p class="subhead">Registered harness definitions currently available in the catalog.</p>
+        </div>
+        <nav class="nav">
+          <a href="/">Dashboard</a>
+          <a href="/harnesses">Harnesses</a>
+          <a href="/api/benchmarks">Benchmarks</a>
+          <a href="/api/promotions">Promotions</a>
+        </nav>
+      </header>
+
+      <section class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Version</th>
+              <th>Status</th>
+              <th>Author</th>
+              <th>Task Family</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if harnesses %}
+              {% for harness in harnesses %}
+              <tr>
+                <td>{{ harness.id }}</td>
+                <td>{{ harness.version }}</td>
+                <td><span class="pill">{{ harness.status }}</span></td>
+                <td>{{ harness.author }}</td>
+                <td>{{ harness.task_family }}</td>
+                <td>{{ harness.created_at or "N/A" }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="empty-state">No harnesses found. Run `make seed` first.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

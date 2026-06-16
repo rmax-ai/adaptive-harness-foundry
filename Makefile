@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test test-ci test-live demo demo-live clean
+.PHONY: install lint typecheck test test-ci test-live demo demo-live api seed docker-build docker-up clean
 
 install:
 	uv sync --extra dev
@@ -32,6 +32,15 @@ demo-live:
 
 api:
 	uv run uvicorn harness_foundry.api.app:app --reload --host 0.0.0.0 --port 8000
+
+seed:
+	uv run python3 scripts/seed_catalog.py
+
+docker-build:
+	docker build -t adaptive-harness-foundry .
+
+docker-up:
+	docker-compose up -d
 
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache __pycache__ src/**/__pycache__ tests/**/__pycache__
