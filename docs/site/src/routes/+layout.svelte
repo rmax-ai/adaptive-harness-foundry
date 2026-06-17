@@ -2,11 +2,11 @@
   import { onMount } from "svelte";
   import Nav from "$lib/components/Nav.svelte";
 
-  onMount(async () => {
-    const m = await import(
-      "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"
-    );
-    m.default.initialize({
+  onMount(() => {
+    // Mermaid loaded via classic <script> in app.html → window.mermaid
+    const m = window.mermaid;
+    if (!m) return;
+    m.initialize({
       startOnLoad: false,
       theme: "base",
       flowchart: {
@@ -29,7 +29,7 @@
         mainBkg: "#161b22",
       },
     });
-    await m.default.run({ querySelector: ".language-mermaid" });
+    m.run({ querySelector: ".language-mermaid" });
   });
 </script>
 
