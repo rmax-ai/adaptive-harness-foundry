@@ -1,5 +1,36 @@
 <script>
+  import { onMount } from "svelte";
   import Nav from "$lib/components/Nav.svelte";
+
+  onMount(async () => {
+    const m = await import(
+      "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs"
+    );
+    m.default.initialize({
+      startOnLoad: false,
+      theme: "base",
+      flowchart: {
+        htmlLabels: true,
+        useMaxWidth: true,
+      },
+      maxTextWidth: 300,
+      themeVariables: {
+        background: "transparent",
+        primaryColor: "#161b22",
+        primaryBorderColor: "#58a6ff",
+        primaryTextColor: "#c9d1d9",
+        lineColor: "#8b949e",
+        secondaryColor: "#0d1117",
+        tertiaryColor: "#090c10",
+        clusterBkg: "transparent",
+        clusterBorder: "#30363d",
+        edgeLabelBackground: "#0d1117",
+        nodeBorder: "#30363d",
+        mainBkg: "#161b22",
+      },
+    });
+    await m.default.run({ querySelector: ".language-mermaid" });
+  });
 </script>
 
 <svelte:head>
