@@ -12,6 +12,14 @@ The Adaptive Harness Foundry (AHF) is a proof-of-concept implementation of the H
 
 The system wraps an ADK `LlmAgent` in a lifecycle processor pipeline, captures structured traces of every invocation, evaluates outputs deterministically, and uses a constrained meta-agent pipeline to propose bounded harness modifications. A deterministic promotion gate ensures candidates only replace the active harness when they provably improve target metrics without regressing safety or overall performance.
 
+## Why This Architecture
+
+Most agent improvement systems blur three separate concerns together: the runtime that executes the agent, the scoring logic that decides whether it worked, and the adaptation logic that tries to improve it. That makes failures hard to diagnose. If an agent changes, you cannot always tell whether the cause was a prompt tweak, an evaluator drift, or a hidden runtime behavior.
+
+AHF splits those concerns into planes so each one can change on its own. The runtime plane only compiles and runs harnesses. The trace plane only records what happened. The evaluation plane only scores those recorded facts. The evolution plane can suggest bounded config changes, but it cannot directly rewrite code or bypass the gate. That separation is what makes deterministic promotion possible.
+
+To ground the rest of this page, use one concrete example: a policy compliance task family. A support agent answers questions about internal policy. The runtime injects the right processors and tools, the trace plane records which tools were called and what the model returned, the evaluation plane checks correctness and grounding, and the evolution plane can respond to repeated failures by tightening the policy-specific harness variant instead of rewriting the whole system.
+
 ## Architecture Overview
 
 ```mermaid
@@ -62,6 +70,8 @@ graph TD
     CAT --> CAT1
 ```
 
+The diagram above shows the planes as a stack. In practice, they behave more like a contract system. Each plane accepts a small set of inputs, emits a narrow set of outputs, and hands evidence to the next plane without sharing authority.
+
 ## Trust Boundaries
 
 | # | Boundary | Protects |
@@ -72,37 +82,92 @@ graph TD
 | TB4 | Task family → Variant | Variant isolation — task-family-specific configs can't leak into other families |
 | TB5 | Meta-agent → Held-out tasks | Held-out split never exposed to evolution — prevents benchmark overfitting |
 
+### Trust Boundaries at a Glance
+
+```mermaid
+flowchart TD
+    subgraph CAT[Catalog Plane]
+        CAT1[Immutable harness versions]
+    end
+
+    subgraph RT[Runtime Plane]
+        RT1[Compiled ADK agent]
+    end
+
+    subgraph TR[Trace Plane]
+        TR1[Structured trace events]
+    end
+
+    subgraph EVAL[Evaluation Plane]
+        EVAL1[Deterministic scores]
+    end
+
+    subgraph EVO[Evolution Plane]
+        EVO1[Patch proposal pipeline]
+        EVO2[Held-out tasks hidden]
+    end
+
+    EVO -->|TB1: new versions only| CAT
+    EVO -->|TB2: patches, not code| RT
+    EVAL -->|TB3: gate controls promotion| CAT
+    RT -->|TB4: family-scoped variants| CAT
+    EVO -.->|TB5: no access| EVO2
+```
+
 ## Component Architecture
 
 ### Catalog Plane
 
+- **What it does**: Stores the harness definitions that the rest of the system treats as source of truth. A harness is not an informal prompt bundle; it is a typed, hashed record that can be recompiled later.
+- **Inputs and outputs**: Inputs are baseline harness registrations, variant definitions, and promotion records. Outputs are immutable versions that the runtime can compile and the operator can inspect.
+- **Failure mode**: If canonicalization, hashing, lineage, or version linkage is wrong, the rest of the system loses provenance. A candidate may still run, but you can no longer prove exactly what was promoted.
 - **HarnessDefinition**: Immutable YAML/JSON configuration with canonical hash (SHA-256 of normalized serialization). Contains model config, agent config, tool policy, processor pipeline assignment.
 - **HarnessVersion**: Each edit produces a new version. Version chain: parent → child. Authorship tracked (human vs meta_agent).
 - **ProcessorSpec**: Typed processor with declared hook, capability set (read/write permissions), version.
 - **VariantDefinition**: Inherits from a base harness, overrides specific fields for a task family.
 - **PromotionRecord**: Links candidate to baseline, records gate-by-gate results, stores evidence references.
 
+In the policy compliance example, the catalog might hold a base enterprise-support harness plus a `policy_question` variant that adds stricter citation requirements and a narrower tool allowlist.
+
 ### Runtime Plane
 
+- **What it does**: Compiles a harness into a working Google ADK agent, attaches lifecycle processors to callbacks, and executes tasks one by one.
+- **Inputs and outputs**: Inputs are a harness version, task definition, task family, and available tools. Outputs are model responses, tool invocations, latencies, token counts, and callback events.
+- **Failure mode**: Bad config resolution, callback miswiring, or processor capability mismatches cause runtime errors or incorrect behavior before evaluation even starts.
 - **HarnessCompiler**: Validates harness config, resolves processor references, compiles into an ADK `LlmAgent` with attached callbacks.
 - **ADKApp**: Factory function creating the ADK application (agent + tools + runner).
 - **TaskRunner**: Executes a benchmark task against a harness, collecting trace events.
 - **CallbackBridge**: Maps `LifecycleHook` enum to ADK callback types (`before_agent`, `after_agent`, `before_model`, `after_model`, `before_tool`, `after_tool`).
 
+For a policy question, the runtime can attach processors that inject task-family context before the model runs, block forbidden tools before invocation, and require citations after tool results come back.
+
 ### Trace Plane
 
+- **What it does**: Turns runtime behavior into durable evidence. Every relevant callback, tool call, latency sample, and error becomes a normalized record.
+- **Inputs and outputs**: Inputs are raw runtime events, provisional agent state, and redaction rules. Outputs are `TraceEvent` rows in SQLite plus optional JSONL exports.
+- **Failure mode**: Missing or malformed traces undermine evaluation and evolution. If secrets are not redacted before persistence, the trace plane becomes a liability instead of a debugging asset.
 - **TraceRecorder**: Writes normalized `TraceEvent` records to SQLite and optionally exports JSONL.
 - **TraceRepository**: Query interface for traces by run_id, task_id, harness_id, failure classification.
 - **RedactionService**: Strips API keys, PII, and credentials before persistence.
 
+When the policy agent answers incorrectly, the trace plane shows whether the root cause was missing retrieval, a disallowed tool call, unsupported grounding, or a slow multi-step loop.
+
 ### Evaluation Plane
 
+- **What it does**: Converts traces into deterministic judgments. It does not ask another model whether an answer "seems good"; it applies code to the recorded facts.
+- **Inputs and outputs**: Inputs are benchmark fixtures, traces, and evaluator rules for correctness, safety, grounding, and efficiency. Outputs are task-level scores, family summaries, and comparison reports.
+- **Failure mode**: Weak or incomplete evaluators produce false confidence. The plane stays deterministic, but the benchmark may still measure the wrong thing if the rubric is poorly designed.
 - **BenchmarkRunner**: Loads benchmark tasks, routes to correct task family variant, executes serially.
 - **ScoringEngine**: Computes TaskScore from trace events using deterministic rules.
 - **ComparisonEngine**: Diffs two runs at task, family, and global levels.
 
+In the policy family, evaluation can reward correct answers with grounded citations while penalizing unapproved tools, missing evidence, or excessive tool chatter.
+
 ### Evolution Plane
 
+- **What it does**: Reads repeated failures and proposes the smallest allowed harness change that might fix them. It is deliberately constrained: no source file writes, no evaluator edits, no secret access to held-out tasks.
+- **Inputs and outputs**: Inputs are failed traces from the evolution split, benchmark summaries, and allowed patch operations. Outputs are candidate harness patches plus structured review artifacts.
+- **Failure mode**: Unsafe, leaky, or ineffective patches are common, which is why this plane is surrounded by critics, linters, and a deterministic promotion gate. Rejection is expected behavior, not system failure.
 - **Digester**: Analyzes failed traces, clusters failures, identifies recurring patterns.
 - **Planner**: Selects one bounded adaptation objective from observed failures.
 - **Evolver**: Generates a `HarnessPatch` using allowed operations (add/remove/replace processor, update config, create variant).
@@ -110,16 +175,55 @@ graph TD
 - **PatchLinter**: Static analysis rejecting patches with benchmark IDs, expected answers, evaluator tampering.
 - **PromotionGate**: Deterministic acceptance policy (all-gates-must-pass).
 
+In the policy example, the evolver might tighten a variant-specific citation processor or adjust a model instruction block. If that patch improves policy tasks but harms incident handling, the gate can still reject it.
+
 ## Data Flow
 
-```text
-1. Operator registers baseline harness → Catalog (immutable)
-2. CLI triggers benchmark → Runtime compiles ADK agent → runs tasks → Trace Plane records events
-3. Evaluation Plane scores traces → produces BenchmarkReport
-4. CLI triggers evolve → Evolution Plane reads failed traces → proposes HarnessPatch
-5. Patch applied → new candidate harness → benchmark comparison → Promotion Gate
-6. If approved → candidate becomes active (new version), previous remains inspectable
+```mermaid
+sequenceDiagram
+    actor Operator
+    participant Catalog
+    participant CLI
+    participant Runtime
+    participant Trace
+    participant Evaluation
+    participant Evolution
+    participant Gate
+
+    Operator->>Catalog: Register baseline harness
+    CLI->>Runtime: Compile harness and run benchmark
+    Runtime->>Trace: Record callbacks, tool calls, outputs, errors
+    Evaluation->>Trace: Read traces for scoring
+    Evaluation-->>CLI: BenchmarkReport
+    CLI->>Evolution: Start evolve cycle with failed traces
+    Evolution->>Trace: Read failure clusters from evolution split
+    Evolution->>Catalog: Write candidate patch as new version
+    CLI->>Runtime: Run candidate benchmark
+    Evaluation-->>Gate: Compare baseline vs candidate
+    Gate->>Catalog: Promote or reject candidate
 ```
+
+This flow is intentionally one-way at each stage. The evaluation plane can read traces, but it cannot rewrite them. The evolution plane can propose a new catalog entry, but it cannot directly mutate the active one.
+
+## Evolution Pipeline
+
+```mermaid
+flowchart TD
+    F[Failed traces] --> D[Digester]
+    D --> P[Planner]
+    P --> E[Evolver]
+    E --> C{Critic: safe?}
+    C -->|No| R1[Reject candidate]
+    C -->|Yes| L{Patch linter: clean?}
+    L -->|No| R2[Reject candidate]
+    L -->|Yes| B{Benchmark: improved?}
+    B -->|No| R3[Reject candidate]
+    B -->|Yes| G{Promotion gate passes?}
+    G -->|No| R4[Reject candidate]
+    G -->|Yes| A[Promote candidate]
+```
+
+The important architectural point is that generation happens early and judgment happens late. AHF lets the meta-agent explore bounded ideas, but only after multiple non-LLM checks decide whether those ideas are acceptable.
 
 ## Key Design Decisions
 
@@ -138,6 +242,8 @@ graph TD
 | Fake model for testing | CI runs without API keys, but may not catch model-specific behavior |
 | SQLite for catalog + traces | Simple deployment, but not multi-writer safe |
 | Single-agent architecture | Clearer trace causality, but cannot demonstrate multi-agent evolution |
+
+These trade-offs bite in specific places. Configuration-only evolution means you cannot repair a missing tool implementation from inside the system; a human still has to change code. Deterministic gates make promotion explainable, but they also reject candidates that may look better to a human reviewer while failing one explicit threshold. SQLite keeps the proof of concept easy to run, but it becomes the first pressure point if multiple operators or runners need concurrent writes.
 
 ## Deployment Topology
 

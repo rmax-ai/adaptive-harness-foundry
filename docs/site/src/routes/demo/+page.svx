@@ -6,7 +6,7 @@ title: Demo Results
 
 # Demo Results
 
-The proof-of-concept demo compares a baseline harness against task-family variants, runs the bounded evolution pipeline, and then validates the promoted candidate on held-out tasks.
+The proof-of-concept demo runs 30 benchmark tasks across three task families, compares a baseline harness against task-family variants, executes the bounded evolution pipeline, and then validates the promoted candidate on held-out tasks. The goal is not to show a flashy one-off win. The goal is to show that AHF can improve a harness in a controlled way, explain why it improved, and refuse candidates that do not earn promotion.
 
 ## Benchmark Summary
 
@@ -16,12 +16,76 @@ The proof-of-concept demo compares a baseline harness against task-family varian
 - Incident variant comparison: `0.40`
 - Held-out evaluation: `0.48`
 
-## Evolution Pipeline
+## Scoreboard
 
-```text
-Evolution: patch proposed -> lint clean -> critic approved
+```mermaid
+flowchart TD
+    subgraph Scores[Benchmark Scores]
+        direction TB
+        B["Baseline      █████████▍ 0.47"]
+        P["Policy variant ██████████ 0.50 ▲"]
+        A["Account variant ██████████ 0.50 ▲"]
+        I["Incident variant ████████ 0.40 ▼"]
+        H["Held-out      █████████▌ 0.48 ●"]
+    end
 ```
 
-## Readout
+The baseline score of `0.47` is the reference point for the original harness. The policy and account variants both move to `0.50`, which is a modest but real gain in a deterministic benchmark. The incident variant drops to `0.40`, which is exactly the kind of regression the gate is supposed to catch instead of smoothing over.
 
-The demo shows selective gains from variant isolation, plus a deterministic review pipeline before promotion. The held-out score stays close to the baseline-to-variant range, which is the key signal the promotion gate is intended to preserve.
+## What the Scores Mean
+
+These scores come from code-based evaluators over structured traces, not subjective model grading. A higher score means the harness satisfied more of the benchmark rubric across correctness, safety, grounding, and efficiency. In practical terms:
+
+- `0.47` baseline means the original harness is serviceable but leaves repeated failure patterns on the table.
+- `0.50` for the policy and account variants suggests family-specific harness changes improved those tasks without requiring a global rewrite.
+- `0.40` for the incident variant signals that the same evolution strategy does not help every task family. That is a success for the benchmark, not a failure of the process.
+- `0.48` on held-out tasks staying close to baseline indicates the promoted candidate did not win purely by memorizing the seen benchmark slices.
+
+## Evolution Pipeline
+
+```mermaid
+flowchart LR
+    T[Failed traces] --> D[Digester]
+    D --> P[Planner]
+    P --> E[Evolver]
+    E --> C{Critic approved?}
+    C -->|No| X1[Reject]
+    C -->|Yes| L{Patch linter clean?}
+    L -->|No| X2[Reject]
+    L -->|Yes| B[Run candidate benchmark]
+    B --> G{Promotion gate passes?}
+    G -->|No| X3[Reject]
+    G -->|Yes| A[Promote active harness]
+    A --> H[Run held-out evaluation]
+```
+
+The demo path that matters here is concrete: traces from failed tasks were digested, a bounded patch was proposed, the critic accepted it, the linter found it clean, and then the benchmark comparison determined whether promotion could happen. That sequence is intentionally more restrictive than an ordinary prompt-iteration loop.
+
+## Before and After
+
+```mermaid
+flowchart LR
+    B[Baseline harness 0.47] --> P[Policy variant 0.50]
+    B --> A[Account variant 0.50]
+    B --> I[Incident variant 0.40]
+    P --> G[Promoted candidate]
+    A --> G
+    I --> R[Rejected path]
+    G --> H[Held-out check 0.48]
+```
+
+This comparison is the clearest argument for variant isolation. The policy and account families can improve independently, while the incident family can fail independently. AHF does not force every task family to share the same fate.
+
+## Key Takeaways
+
+- Variant isolation worked: the policy and account task families improved to `0.50` without requiring a full-harness rewrite.
+- The incident family score of `0.40` shows the gate has a real job to do. Underperforming candidates are visible and rejectable.
+- The held-out score of `0.48`, close to the `0.47` baseline, is the main anti-overfitting signal in this proof of concept.
+- Deterministic scoring turns promotion from a taste judgment into an auditable decision.
+
+## Limitations
+
+- The demo is single-agent only, so it does not yet test multi-agent coordination or cross-agent trace attribution.
+- Storage is SQLite, which is appropriate for a proof of concept but not for high-concurrency operators.
+- The benchmark set is intentionally small and task-family-specific. More task diversity is still needed before making broader claims about generalization.
+- AHF evolves configuration, not implementation code. If the underlying toolchain is wrong, a human still has to fix the code.

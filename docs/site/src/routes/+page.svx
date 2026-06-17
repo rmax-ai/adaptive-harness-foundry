@@ -6,7 +6,55 @@ title: Adaptive Harness Foundry
 
 # Adaptive Harness Foundry
 
-Configuration-level agent harness evolution with Google ADK.
+Most agent frameworks help you build agents. Adaptive Harness Foundry helps you prove they are getting better. It treats the harness around a Google ADK agent as a versioned artifact, benchmarks that artifact with deterministic evaluators, and only promotes a new candidate when the evidence says it improved without breaking safety or drifting into benchmark tricks.
+
+The core claim is simple: if agent behavior lives in configuration instead of handwritten patchwork, you can evolve it safely. AHF keeps the Python runtime stable, applies only YAML or JSON harness patches, and leaves behind a full audit trail for every proposed change.
+
+## System At a Glance
+
+```mermaid
+flowchart LR
+    O[Operator submits harness]
+    C[Catalog stores versioned harness]
+    R[Runtime compiles and runs ADK agent]
+    T[Trace plane captures events]
+    E[Evaluation scores traces]
+    V[Evolution proposes bounded patch]
+    G{Promotion gate passes?}
+    P[Promote new active version]
+    H[Keep prior version active]
+
+    O --> C --> R --> T --> E --> V --> G
+    G -->|Yes| P
+    G -->|No| H
+    P --> C
+```
+
+## Why Teams Care
+
+AHF is for teams that already know prompts and tools are not the hard part. The hard part is making changes in a way that can be reproduced, compared, and defended. Instead of asking whether an agent "felt better" in a demo, AHF records exactly what changed, what tasks improved, what regressed, and why promotion was allowed or denied.
+
+## Use Cases
+
+### Improve tool-calling policy without touching Python
+
+A platform team wants to reduce unnecessary tool calls in a support agent. In AHF, the evolver proposes a config patch to the harness or to a task-family variant. The runtime stays the same, the benchmark reruns, and the promotion gate can reject the candidate if efficiency improves but correctness or safety drops.
+
+### Run deterministic benchmarks that survive review
+
+An evaluation team needs scores they can replay in CI, in a design review, or in an incident write-up. AHF uses code-based evaluators over structured traces instead of LLM judges, so the same harness and the same fixtures produce the same score.
+
+### Maintain a durable audit trail for every agent change
+
+A compliance or governance team needs proof that a promoted harness came from an approved lineage. AHF versions harnesses immutably, hashes them with SHA-256, tracks authorship, and records promotion evidence so operators can inspect what changed and when.
+
+## What Makes AHF Different
+
+- Configuration-only evolution: candidates are YAML or JSON patches, not generated Python.
+- Deterministic promotion gates: the model cannot approve its own changes.
+- Variant isolation: policy, account, and incident task families can evolve independently.
+- Held-out evaluation: promoted candidates still face tasks the meta-agent never inspected.
+- Full provenance: every harness version, trace, score, and promotion record remains inspectable.
 
 ## What This Demonstrates
 
@@ -18,5 +66,18 @@ Configuration-level agent harness evolution with Google ADK.
 - Deterministic promotion gate
 - Task-family variant isolation
 - Held-out evaluation split
+
+## Quick Start
+
+Install from source and run the proof of concept locally:
+
+```bash
+git clone https://github.com/rmax-ai/adaptive-harness-foundry.git
+cd adaptive-harness-foundry
+make install
+make demo
+```
+
+The docs sidebar covers the architecture and demo results. The repository README has the full setup path and CLI examples.
 
 [View on GitHub](https://github.com/rmax-ai/adaptive-harness-foundry)
